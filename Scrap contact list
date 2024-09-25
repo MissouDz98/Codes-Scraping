@@ -1,0 +1,42 @@
+import requests
+from bs4 import BeautifulSoup
+from openpyxl import Workbook
+
+# URL of the website to scrape
+url = "https://www.tieraerzteverband.de/bpt/ueber-den-bpt/tierarztsuche/index.php?animals%5B%5D=1&name=&zipcode=&town=&radius="
+
+# Send a GET request to the website
+response = requests.get(url)
+soup = BeautifulSoup(response.text, 'html.parser')
+
+# Create a new Excel workbook and select the active worksheet
+wb = Workbook()
+ws = wb.active
+ws.title = "Contact Details"
+
+# Add headers to the Excel sheet
+ws.append(["Name", "Address", "Telephone Number"])
+
+# Find all relevant data blocks (adjust based on the structure of the website)
+for vet1 in soup.find_all('div', class_='elementStandard elementList'):  # Adjust the class based on the site's structure
+    for vet2 in vet1.find_all('div', class_='elementStandard elementResultLine mgStyle'):
+        # Extracting Name
+        vet3 = vet2.find('div', class_='headline')
+        if vet3:
+            name_tag = vet3.find('h2', class_='')  # Adjust the tag and class name
+            name = name_tag.text.strip() if name_tag else "N/A"
+        # Extracting Address
+        address_tag = vet2.find('div', class_='')  # Adjust the tag and class name
+        address = address_tag.text.strip() if address_tag else "N/A"
+
+        # Extracting Phone Number
+        phone_number_tag = vet2.find('a', class_='phone')  # Adjust the tag and class name
+        phone_number = phone_number_tag.text.strip() if phone_number_tag else "N/A"
+
+        # Append the data to the Excel sheet
+        ws.append([name, address, phone_number])
+
+# Save the workbook to an Excel file
+wb.save("C:/Users/mouss/Documents/vets_contact_details1.xlsx")
+
+print("Data has been scraped and saved to vets_contact_details1.xlsx")
